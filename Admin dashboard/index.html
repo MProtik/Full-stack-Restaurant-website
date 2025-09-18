@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Restaurant Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background: #333; color: white; }
+    button { padding: 5px 10px; margin: 2px; cursor: pointer; }
+    .pending { color: orange; font-weight: bold; }
+    .accepted { color: green; font-weight: bold; }
+    .rejected { color: red; font-weight: bold; }
+    .delivered { color: blue; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>📋 Restaurant Orders Dashboard</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Food</th>
+        <th>Qty</th>
+        <th>Datetime</th>
+        <th>Address</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="ordersTable"></tbody>
+  </table>
+
+<script>
+  const API_BASE = "http://127.0.0.1:8000";
+
+  async function fetchOrders() {
+    try {
+      const res = await fetch(`${API_BASE}/orders/pending/`); // fetch all orders, or create another API for all statuses
+      const data = await res.json();
+      const table = document.getElementById("ordersTable");
+      table.innerHTML = "";
+
+      if (data.orders.length === 0) {
+        table.innerHTML = `<tr><td colspan="9">No orders</td></tr>`;
+        return;
+      }
+
+      data.orders.forEach(order => {
+        let row = document.createElement("tr");
+
+        // Decide action buttons based on status
+        let actionButtons = "";
+        if (order.status.toLowerCase() === "pending") {
+          actionButtons = `
+            <button onclick="updateOrder(${order.id}, 'accepted')">✅ Accept</button>
+            <button onclick="updateOrder(${order.id}, 'rejected')">❌ Reject</button>
+          `;
+        } else if (order.status.toLowerCase() === "accepted") {
+          actionButtons = `
+            <button onclick="updateOrder(${order.id}, 'delivered')">🚚 Delivered</button>
+            <button onclick="updateOrder(${order.id}, 'not delivered')">❌ Not Delivered</button>
+          `;
+        } else {
+          actionButtons = `-`; // no actions for rejected/delivered
+        }
+
+        row.innerHTML = `
+          <td>${order.id}</td>
+          <td>${order.name}</td>
+          <td>${order.phone}</td>
+          <td>${order.food_name}</td>
+          <td>${order.quantity}</td>
+          <td>${order.datetime}</td>
+          <td>${order.address}</td>
+          <td class="${order.status.toLowerCase()}">${order.status}</td>
+          <td>${actionButtons}</td>
+        `;
+
+        table.appendChild(row);
+      });
+
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  }
+
+  async function updateOrder(orderId, status) {
+    try {
+      const formData = new FormData();
+      formData.append("order_id", orderId);
+      formData.append("status", status);
+
+      const res = await fetch(`${API_BASE}/update-order/`, {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      console.log(data.message);
+
+      fetchOrders(); // refresh table after update
+    } catch (error) {
+      console.error("Error updating order:", error);
+    }
+  }
+
+  // Refresh orders every 5 seconds
+  fetchOrders();
+  setInterval(fetchOrders, 5000);
+</script>
+
+</body>
+</html>
