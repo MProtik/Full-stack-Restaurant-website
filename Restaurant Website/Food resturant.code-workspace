@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "../../Python Project/Store Management System/Store-Management-System-Project"
+		},
+		{
+			"path": "../../Python Project"
+		},
+		{
+			"path": "../../Python work/FastAPI learning"
+		},
+		{
+			"path": "../../../Rubaiyas project"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "Rubaiyas project"
+	}
+}
